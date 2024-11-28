@@ -16,10 +16,12 @@ export default class GeminiProvider extends BaseLLMProvider {
         this.provider = base_provider.getGenerativeModel({ model: modelName });
     }
 
-    async generateContent(prompt) {
+    async generateContent(prompt, temperature=0.7, maxTokens=8192) {
         if (!this.provider) {
             throw new Error("Gemini API key not found");
         }
+        this.provider.generationConfig.temperature = temperature;
+        this.provider.generationConfig.maxOutputTokens = maxTokens;
 
         const result = await this.provider.generateContent(prompt);
         const response = result.response;

@@ -1,18 +1,18 @@
 import BaseLLMProvider from "./base_llm_provider.js";
-import OpenAI from "openai";
+import { Groq } from "groq-sdk";
 
-export default class OpenAIProvider extends BaseLLMProvider {
-    constructor(modelName="gpt-3.5-turbo") {
+export default class GroqProvider extends BaseLLMProvider {
+    constructor(modelName="mixtral-8x7b-32768") {
         super();
-        this.name = "OpenAI";
+        this.name = "Groq";
 
-        const apiKey = process.env.OPENAI_API_KEY;
+        const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
             this.provider = null;
             return;
         }
 
-        this.provider = new OpenAI({
+        this.provider = new Groq({
             apiKey
         });
         this.modelName = modelName;
@@ -20,7 +20,7 @@ export default class OpenAIProvider extends BaseLLMProvider {
 
     async generateContent(prompt, temperature=0.7, maxTokens=8192) {
         if (!this.provider) {
-            throw new Error("OpenAI API key not found");
+            throw new Error("Groq API key not found");
         }
 
         const completion = await this.provider.chat.completions.create({

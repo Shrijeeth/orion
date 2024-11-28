@@ -10,7 +10,7 @@ export default class OllamaProvider extends BaseLLMProvider {
         this.modelName = modelName;
     }
 
-    async generateContent(prompt) {
+    async generateContent(prompt, temperature=0.7, maxTokens=8192) {
         try {
             const response = await fetch(`${this.baseUrl}/api/generate`, {
                 method: 'POST',
@@ -20,7 +20,9 @@ export default class OllamaProvider extends BaseLLMProvider {
                 body: JSON.stringify({
                     model: this.modelName,
                     prompt,
-                    stream: false
+                    stream: false,
+                    temperature,
+                    max_tokens: maxTokens,
                 })
             });
 

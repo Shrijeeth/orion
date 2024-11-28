@@ -7,11 +7,15 @@ import {
 	chunkText,
 	vectorizeAndStore,
 	similaritySearch,
+	recommendWebpages,
 	checkEntriesExist,
 } from "./qdrant_operations.js";
 import GeminiProvider from "./llm_providers/gemini_provider.js";
 import OpenAIProvider from "./llm_providers/openai_provider.js";
 import OllamaProvider from "./llm_providers/ollama_provider.js";
+import AnthropicProvider from "./llm_providers/anthropic_provider.js";
+import MistralProvider from "./llm_providers/mistral_provider.js";
+import GroqProvider from "./llm_providers/groq_provider.js";
 
 dotenv.config();
 
@@ -29,7 +33,10 @@ app.use((req, res, next) => {
 const port = 5000;
 const threshold = 30;
 const providers = {
+	anthropic: new AnthropicProvider(),
 	gemini: new GeminiProvider(),
+	groq: new GroqProvider(),
+	mistral: new MistralProvider(),
 	openai: new OpenAIProvider(),
 	ollama: new OllamaProvider(),
 }
@@ -113,7 +120,7 @@ app.post("/search", upload.none(), async (req, res) => {
 		let prompt = `
 		You are a browser assistant who answers queries from users and also an expert web scraper. You are given the text content of some webpages as context, along with a user query.
 		Answer the user query based on the context. Don't mention that you are an expert web scraper, or anything related to web scraping.
-		Answer with the proper context without encouraging the user to perform any other actions. 
+		Answer with the proper context without encouraging the user to perform any other actions.
 		If the answer to the question doesnt seem to be in the information given, return "Sorry, I could not find that information.".
 		Talk as if you are a third person who reads the context and answers the user query, and don't endorse any of the context. Don't talk as if you are affiliated with the context.
 		Return the answer with properly formatted markdown syntax. Don't be too verbose.
@@ -188,6 +195,11 @@ app.post("/search", upload.none(), async (req, res) => {
 	const numResults = 5;
 	console.log(`index baseURL: ${baseURL}`);
 	const searchResults = await similaritySearch(userPrompt, baseURL, numResults);
+	const websiteRecommendations = await recommendWebpages(
+		userPrompt,
+		baseURL,
+		numResults,
+	)
 
 	let resultsText = "";
 	const resultsURLs = [];
@@ -196,7 +208,7 @@ app.post("/search", upload.none(), async (req, res) => {
 		resultsURLs.push(result.url);
 	});
 
-	let prompt = `
+	const prompt = `
 	You are a browser asistant who answers queries from users and also an expert web scraper. You are given the text content of some webpages as context, along with a user query.
 	Answer the user query based on the context. Don't mention that you are an expert web scraper, or anything related to web scraping.
 	Answer with the proper context without encouraging the user to perform any other actions. 
@@ -219,6 +231,7 @@ app.post("/search", upload.none(), async (req, res) => {
 			result: {
 				message: llmResponse,
 				resultsURLs: removeDuplicates(resultsURLs),
+				websiteRecommendations,
 			},
 		});
 	} catch (error) {
