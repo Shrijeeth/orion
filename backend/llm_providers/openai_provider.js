@@ -1,23 +1,28 @@
-import BaseLLMProvider from "./base_llm_provider";
+import BaseLLMProvider from "./base_llm_provider.js";
 import OpenAI from "openai";
 
 export default class OpenAIProvider extends BaseLLMProvider {
     constructor(modelName="gpt-3.5-turbo") {
         super();
         this.name = "OpenAI";
-        
+
         const apiKey = process.env.OPENAI_API_KEY;
         if (!apiKey) {
-            throw new Error("OPENAI_API_KEY is not set");
+            this.provider = null;
+            return;
         }
 
         this.provider = new OpenAI({
-            apiKey: apiKey
+            apiKey
         });
         this.modelName = modelName;
     }
 
     async generateContent(prompt) {
+        if (!this.provider) {
+            throw new Error("OpenAI API key not found");
+        }
+
         const completion = await this.provider.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
             model: this.modelName,

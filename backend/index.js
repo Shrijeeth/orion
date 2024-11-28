@@ -2,7 +2,6 @@ import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import multer from "multer";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { scrapeWebpages } from "./scraper.js";
 import {
 	chunkText,
@@ -101,7 +100,7 @@ app.post("/search", upload.none(), async (req, res) => {
 
 	if (isCheckedCurrPage === "true") {
 		let webpageContent = "";
-		const { scrapedContent, visitedURLsArray } = await scrapeWebpages(
+		const { scrapedContent } = await scrapeWebpages(
 			urlTab,
 			1,
 			true
@@ -173,7 +172,7 @@ app.post("/search", upload.none(), async (req, res) => {
 	}
 
 	if (!baseURLEntriesExist && !urlEntriesExist) {
-		const { scrapedContent, visitedURLsArray } = await scrapeWebpages(
+		const { scrapedContent } = await scrapeWebpages(
 			baseURL,
 			threshold,
 			flush
@@ -186,12 +185,12 @@ app.post("/search", upload.none(), async (req, res) => {
 		}
 	}
 
-	let numResults = 5;
+	const numResults = 5;
 	console.log(`index baseURL: ${baseURL}`);
-	let searchResults = await similaritySearch(userPrompt, numResults, baseURL);
+	const searchResults = await similaritySearch(userPrompt, baseURL, numResults);
 
 	let resultsText = "";
-	let resultsURLs = [];
+	const resultsURLs = [];
 	searchResults.forEach((result, index) => {
 		resultsText += result.text + "\n\n\n";
 		resultsURLs.push(result.url);

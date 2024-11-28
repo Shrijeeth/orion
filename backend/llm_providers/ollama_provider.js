@@ -1,10 +1,10 @@
-import BaseLLMProvider from "./base_llm_provider";
+import BaseLLMProvider from "./base_llm_provider.js";
 
 export default class OllamaProvider extends BaseLLMProvider {
-    constructor(modelName = "llama2") {
+    constructor(modelName = "llama3.2") {
         super();
         this.name = "Ollama";
-        
+
         const baseUrl = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
         this.baseUrl = baseUrl;
         this.modelName = modelName;
@@ -19,7 +19,7 @@ export default class OllamaProvider extends BaseLLMProvider {
                 },
                 body: JSON.stringify({
                     model: this.modelName,
-                    prompt: prompt,
+                    prompt,
                     stream: false
                 })
             });
